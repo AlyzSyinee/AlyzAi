@@ -1,1288 +1,238 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
-    <title>ALYZ AI AM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <style>
-      :root {
-        --bg:#e8e8e8; --surface:#f5f5f5; --fg:#000000; --fg-dim:#4a4a4a;
-        --border:#000000; --shadow:#000000; --accent:#000000; --accent-fg:#ffffff;
-        --font:'Space Grotesk', sans-serif; --nav-h:86px;
-        --kb-h:0px;
-        --ease-ios:cubic-bezier(.32,.72,0,1);
-        --ease-spring:cubic-bezier(.34,1.4,.64,1);
-        --ease-bounce:cubic-bezier(.34,1.56,.64,1);
-        --ease-soft:cubic-bezier(.4,0,.2,1);
-      }
-      *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
-      input,textarea{user-select:text;}
-      html,body{height:100%;overscroll-behavior:none;}
-      body{font-family:var(--font);background:var(--bg);color:var(--fg);display:flex;justify-content:center;min-height:100vh;min-height:100dvh;overflow:hidden;-webkit-font-smoothing:antialiased;}
-      button,input,textarea{font-family:var(--font);}
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEB INI TELAH DI HAPUS</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#000;
+    color:#ff1a1a;
+    font-family:'Share Tech Mono','JetBrains Mono',monospace;
+    min-height:100vh;
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+  /* MATRIX CANVAS */
+  #matrix{position:fixed;inset:0;z-index:0;opacity:.85}
+  /* Vignette + scanline */
+  .scanlines{
+    position:fixed;inset:0;z-index:2;pointer-events:none;
+    background:repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,.25) 3px, rgba(0,0,0,.25) 4px);
+  }
+  .vignette{
+    position:fixed;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.85) 100%);
+  }
+  /* WRAPPER */
+  .wrap{
+    position:relative;z-index:3;
+    width:100%;max-width:620px;
+    text-align:center;
+  }
+  .top-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    border:1px solid #ff1a1a;
+    background:rgba(0,0,0,.75);
+    padding:8px 12px;
+    font-size:11px;letter-spacing:2px;
+    color:#ff1a1a;
+    box-shadow:0 0 20px rgba(255,0,0,.4), inset 0 0 20px rgba(255,0,0,.1);
+  }
+  .dot{width:10px;height:10px;border-radius:50%;background:#ff1a1a;display:inline-block;box-shadow:0 0 10px #ff1a1a;animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.2}}
 
-      .app{width:100%;max-width:480px;height:100vh;height:100dvh;position:fixed;top:0;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;background:var(--bg);overflow:hidden;}
+  .box{
+    margin-top:14px;
+    border:1px solid #ff1a1a;
+    background:rgba(0,0,0,.82);
+    backdrop-filter:blur(4px);
+    padding:28px 20px 24px;
+    box-shadow:0 0 40px rgba(255,0,0,.35), inset 0 0 30px rgba(255,0,0,.08);
+    position:relative;
+  }
+  .box::before{
+    content:"";
+    position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,#ff1a1a,transparent);
+    box-shadow:0 0 15px #ff1a1a;
+  }
+  .skull{font-size:52px;line-height:1;filter:drop-shadow(0 0 15px rgba(255,0,0,.8));margin-bottom:8px}
+  .status{
+    display:inline-block;
+    font-size:11px;letter-spacing:3px;
+    border:1px solid #ff1a1a;
+    padding:5px 12px;
+    background:rgba(255,0,0,.12);
+    color:#ff4d4d;
+    margin-bottom:16px;
+  }
+  h1{
+    font-size:clamp(28px,7vw,46px);
+    line-height:1.05;
+    font-weight:800;
+    color:#fff;
+    text-shadow:0 0 10px #ff0000, 0 0 25px #ff0000, 0 0 45px #ff0000;
+    letter-spacing:1px;
+  }
+  h1 span{color:#ff1a1a}
+  .typing{
+    margin:16px auto 0;
+    max-width:520px;
+    font-size:13px;line-height:1.6;
+    color:#ffb3b3;
+    min-height:44px;
+  }
+  .cursor{display:inline-block;width:9px;height:15px;background:#ff1a1a;vertical-align:-2px;animation:blink .8s infinite;box-shadow:0 0 8px #ff1a1a}
 
-      #splash-screen{position:fixed;inset:0;background:var(--bg);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .55s var(--ease-soft),visibility .55s;}
-      #splash-screen.hidden{opacity:0;visibility:hidden;}
-      .splash-icon{width:96px;height:96px;background:var(--surface);border:3px solid var(--border);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:46px;color:var(--fg);box-shadow:6px 6px 0 var(--shadow);animation:splashPop .8s var(--ease-bounce) forwards;transform:scale(0) rotate(-8deg);}
-      @keyframes splashPop{0%{transform:scale(0) rotate(-8deg);}60%{transform:scale(1.08) rotate(2deg);}100%{transform:scale(1) rotate(0);}}
-      .splash-title{margin-top:24px;font-size:32px;font-weight:800;letter-spacing:-1px;animation:fadeUp .7s var(--ease-ios) .15s forwards;opacity:0;transform:translateY(14px);}
-      .splash-subtitle{margin-top:6px;font-size:13px;color:var(--fg-dim);font-weight:500;animation:fadeUp .7s var(--ease-ios) .3s forwards;opacity:0;transform:translateY(14px);margin-bottom:40px;letter-spacing:.5px;}
-      .splash-loading-wrapper{width:200px;display:flex;flex-direction:column;align-items:center;animation:fadeUp .7s var(--ease-ios) .45s forwards;opacity:0;transform:translateY(14px);}
-      .splash-percent{font-size:16px;font-weight:800;margin-bottom:10px;letter-spacing:1px;}
-      .splash-progress-bg{width:100%;height:14px;background:var(--surface);border:2px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:3px 3px 0 var(--shadow);}
-      .splash-progress-bar{height:100%;width:0%;background:var(--fg);transition:width .25s var(--ease-soft);}
-      @keyframes fadeUp{to{opacity:1;transform:translateY(0);}}
+  .warning{
+    margin:20px auto 0;
+    max-width:520px;
+    border:1px dashed #ff1a1a;
+    background:rgba(255,0,0,.08);
+    padding:14px;
+    text-align:left;
+    font-size:12.5px;line-height:1.6;
+    color:#ffcccc;
+  }
+  .warning b{color:#fff}
+  .warning .head{color:#ff1a1a;font-weight:800;letter-spacing:1px;margin-bottom:6px}
 
-      .views{flex:1 1 auto;position:relative;overflow:hidden;display:flex;min-height:0;}
-      .view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:translateX(24px);transition:opacity .4s var(--ease-ios),transform .4s var(--ease-ios);min-height:0;}
-      .view.active{opacity:1;pointer-events:auto;transform:translateX(0);}
-      .view.leaving{opacity:0;transform:translateX(-24px);}
+  .terminal{
+    margin:16px auto 0;
+    max-width:520px;
+    background:#050000;
+    border:1px solid rgba(255,0,0,.4);
+    text-align:left;
+    padding:12px;
+    font-size:11.5px;line-height:1.7;
+    color:#ff6b6b;
+  }
+  .terminal .green{color:#ff1a1a}
+  .terminal .white{color:#fff}
+  .terminal .gray{color:#888}
 
-      .view-header{padding:16px 18px 12px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
-      .view-avatar{width:44px;height:44px;border-radius:12px;background:var(--fg);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid var(--border);box-shadow:3px 3px 0 var(--shadow);flex-shrink:0;}
-      .view-header-info h2{font-size:15px;font-weight:800;letter-spacing:-.3px;}
-      .view-header-info p{font-size:11px;color:var(--fg-dim);font-weight:500;display:flex;align-items:center;gap:5px;}
-      .status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 0 2px rgba(34,197,94,.25);animation:pulseDot 2s ease-in-out infinite;}
-      @keyframes pulseDot{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.25);}50%{box-shadow:0 0 0 5px rgba(34,197,94,0);}}
-      .view-header-spacer{flex:1;}
-      .view-header-btn{width:36px;height:36px;border-radius:10px;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--fg);cursor:pointer;box-shadow:2px 2px 0 var(--shadow);transition:transform .35s var(--ease-spring),box-shadow .35s var(--ease-spring);}
-      .view-header-btn:active{transform:translate(1px,1px) scale(.92);box-shadow:0 0 0 var(--shadow);}
-      .view-header-btn.hidden-btn{display:none;}
+  .btn-row{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+  .btn{
+    padding:11px 18px;
+    font-family:inherit;
+    font-size:12px;letter-spacing:1px;font-weight:700;
+    cursor:pointer;border:1px solid #ff1a1a;
+    background:#ff1a1a;color:#000;
+    box-shadow:0 0 20px rgba(255,0,0,.5);
+    text-decoration:none;
+  }
+  .btn.outline{background:transparent;color:#ff1a1a}
+  .btn:active{transform:scale(.97)}
 
-      .chat-messages{
-        flex:1; overflow-y:auto;
-        padding:18px 14px 24px;
-        padding-bottom: calc(var(--nav-h) + var(--kb-h) + 90px + env(safe-area-inset-bottom));
-        display:flex; flex-direction:column; gap:12px;
-        scrollbar-width:none; -webkit-overflow-scrolling:touch;
-        scroll-behavior:smooth; min-height:0;
-      }
-      .chat-messages::-webkit-scrollbar{display:none;}
+  .footer{
+    margin-top:18px;
+    font-size:10px;letter-spacing:2px;
+    color:rgba(255,255,255,.35);
+  }
+  .footer b{color:#ff1a1a}
+  .glitch{animation:glitch 2.5s infinite}
+  @keyframes glitch{
+    0%,92%,100%{transform:translate(0)}
+    93%{transform:translate(-2px,1px)}
+    94%{transform:translate(2px,-1px)}
+    95%{transform:translate(-1px,0)}
+    96%{transform:translate(0)}
+  }
+  @media(max-width:480px){.box{padding:22px 14px}.skull{font-size:44px}}
+</style>
+</head>
+<body>
 
-      .bubble{max-width:82%;padding:12px 14px;border:2px solid var(--border);border-radius:14px;font-size:13px;line-height:1.55;font-weight:500;box-shadow:3px 3px 0 var(--shadow);animation:bubbleIn .45s var(--ease-bounce) backwards;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;}
-      @keyframes bubbleIn{0%{opacity:0;transform:translateY(10px) scale(.94);}70%{opacity:1;transform:translateY(-1px) scale(1.01);}100%{opacity:1;transform:translateY(0) scale(1);}}
-      .bubble.ai{align-self:flex-start;background:var(--surface);color:var(--fg);border-bottom-left-radius:4px;}
-      .bubble.user{align-self:flex-end;background:var(--fg);color:var(--accent-fg);border-bottom-right-radius:4px;}
-      .bubble .ai-name{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;opacity:.65;display:flex;align-items:center;gap:5px;}
-      .bubble .ai-name i{font-size:12px;}
-      .bubble.log{align-self:flex-start;background:#ffffff;color:var(--fg);border-bottom-left-radius:4px;max-width:88%;padding:10px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px;line-height:1.6;border-left:4px solid var(--fg);white-space:normal;}
-      .bubble.log .log-line{display:flex;align-items:flex-start;gap:6px;animation:logIn .3s var(--ease-ios) backwards;}
-      .bubble.log .log-line + .log-line{margin-top:4px;}
-      @keyframes logIn{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:translateX(0);}}
-      .log-ok{color:#16a34a;}.log-warn{color:#ca8a04;}.log-err{color:#dc2626;}.log-info{color:var(--fg-dim);}
+<canvas id="matrix"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
 
-      .bubble-cta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-      .cta-btn{flex:1 1 auto;background:var(--fg);color:var(--accent-fg);border:2px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;box-shadow:2px 2px 0 var(--shadow);transition:transform .35s var(--ease-spring),box-shadow .35s var(--ease-spring);display:flex;align-items:center;justify-content:center;gap:5px;}
-      .cta-btn:active{transform:translate(1px,1px) scale(.96);box-shadow:0 0 0 var(--shadow);}
-      .cta-btn.secondary{background:var(--surface);color:var(--fg);}
-      .cta-btn:disabled{opacity:.5;pointer-events:none;}
-      .cta-btn.danger{background:#dc2626;color:#fff;border-color:#dc2626;}
+<div class="wrap">
+  <div class="top-bar">
+    <span><span class="dot"></span> &nbsp; SYSTEM:// DELETED</span>
+    <span>ALYZ_SECURE v1.0</span>
+  </div>
 
-      .typing-bubble{align-self:flex-start;background:var(--surface);border:2px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;padding:12px 16px;box-shadow:3px 3px 0 var(--shadow);display:flex;gap:5px;align-items:center;}
-      .typing-bubble span{width:7px;height:7px;border-radius:50%;background:var(--fg-dim);opacity:.4;animation:typingDot 1.2s infinite ease-in-out;}
-      .typing-bubble span:nth-child(2){animation-delay:.15s;}
-      .typing-bubble span:nth-child(3){animation-delay:.3s;}
-      @keyframes typingDot{0%,60%,100%{opacity:.35;transform:translateY(0);}30%{opacity:1;transform:translateY(-3px);}}
+  <div class="box">
+    <div class="skull">💀</div>
+    <div class="status">⚠ ACCESS DENIED - 403 DELETED</div>
 
-      .popup-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s var(--ease-soft);padding:20px;}
-      .popup-overlay.active{opacity:1;pointer-events:auto;}
-      .popup-card{background:var(--surface);border:3px solid var(--border);border-radius:18px;padding:22px 20px;width:100%;max-width:400px;max-height:80vh;display:flex;flex-direction:column;box-shadow:8px 8px 0 var(--shadow);transform:scale(.85) translateY(12px);opacity:0;transition:transform .55s var(--ease-bounce),opacity .35s var(--ease-soft);}
-      .popup-overlay.active .popup-card{transform:scale(1) translateY(0);opacity:1;}
-      .popup-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0;}
-      .popup-icon{width:42px;height:42px;border-radius:10px;background:var(--fg);color:var(--accent-fg);display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--border);box-shadow:2px 2px 0 var(--shadow);flex-shrink:0;}
-      .popup-icon.danger{background:#dc2626;color:#fff;border-color:#dc2626;}
-      .popup-header-text{flex:1;}
-      .popup-header-text h3{font-size:15px;font-weight:800;letter-spacing:-.2px;}
-      .popup-header-text p{font-size:11px;color:var(--fg-dim);font-weight:500;margin-top:1px;}
-      .popup-close{width:32px;height:32px;border-radius:8px;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;box-shadow:2px 2px 0 var(--shadow);transition:transform .3s var(--ease-spring);}
-      .popup-close:active{transform:scale(.9);}
-      .popup-body{overflow-y:auto;flex:1;scrollbar-width:thin;}
-      .popup-body::-webkit-scrollbar{width:6px;}
-      .popup-body::-webkit-scrollbar-thumb{background:var(--fg-dim);border-radius:3px;}
+    <h1 class="glitch">WEB INI TELAH<br><span>DI HAPUS</span></h1>
 
-      .inbox-item{background:#ffffff;border:2px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:2px 2px 0 var(--shadow);transition:transform .3s var(--ease-spring);}
-      .inbox-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
-      .inbox-item-from{font-size:11px;font-weight:800;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
-      .inbox-item-date{font-size:10px;color:var(--fg-dim);font-weight:600;flex-shrink:0;}
-      .inbox-item-subject{font-size:12px;font-weight:700;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .inbox-item-preview{font-size:11px;color:var(--fg-dim);line-height:1.5;max-height:3em;overflow:hidden;word-break:break-word;margin-bottom:8px;}
-      .inbox-item-actions{display:flex;gap:6px;flex-wrap:wrap;}
-      .inbox-item-actions .cta-btn{font-size:10px;padding:7px 10px;flex:1 1 auto;}
-      .inbox-empty{text-align:center;padding:32px 12px;font-size:12px;color:var(--fg-dim);font-weight:600;line-height:1.6;}
-      .inbox-empty i{display:block;font-size:38px;margin-bottom:10px;opacity:.4;}
+    <div class="typing" id="typing"></div>
 
-      .popup-field{width:100%;background:#ffffff;border:2px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12px;font-weight:600;color:var(--fg);outline:none;margin-bottom:10px;box-shadow:inset 2px 2px 0 rgba(0,0,0,.06);transition:box-shadow .35s var(--ease-spring),transform .35s var(--ease-spring);font-family:ui-monospace,monospace;user-select:text;}
-      .popup-field:focus{box-shadow:3px 3px 0 var(--shadow);transform:translate(-1px,-1px);}
-      .popup-hint{font-size:11px;color:var(--fg-dim);line-height:1.5;margin-bottom:12px;}
-      .popup-hint code{background:var(--bg);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:10px;}
-
-      .confirm-actions{display:flex;gap:8px;margin-top:14px;}
-      .confirm-actions .cta-btn{flex:1;padding:12px;font-size:12px;}
-
-      .composer-wrapper{
-        position:absolute; left:0; right:0;
-        padding:0 12px;
-        z-index:40;
-        pointer-events:none;
-        bottom:calc(var(--kb-h) + var(--nav-h) + 8px + env(safe-area-inset-bottom));
-        transition:bottom .18s ease-out;
-      }
-      .composer{background:var(--surface);border:3px solid var(--border);border-radius:16px;padding:6px;display:flex;gap:6px;align-items:flex-end;box-shadow:4px 4px 0 var(--shadow);pointer-events:auto;}
-      .composer-input{flex:1;background:transparent;border:none;outline:none;padding:10px 8px;color:var(--fg);font-size:14px;font-weight:600;resize:none;max-height:120px;line-height:1.45;}
-      .composer-input::placeholder{color:#999;font-weight:500;}
-      .composer-btn{width:42px;height:42px;border-radius:10px;background:var(--fg);color:var(--accent-fg);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:2px 2px 0 var(--shadow);transition:transform .35s var(--ease-spring),box-shadow .35s var(--ease-spring);flex-shrink:0;}
-      .composer-btn:active{transform:translate(1px,1px) scale(.9);box-shadow:0 0 0 var(--shadow);}
-      .composer-btn:disabled{opacity:.4;pointer-events:none;}
-
-      .inbox-list{flex:1;overflow-y:auto;padding:16px 14px 24px;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:0;}
-      .inbox-list::-webkit-scrollbar{display:none;}
-      .inbox-session-banner{background:#ffffff;border:2px dashed var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;font-weight:700;color:var(--fg-dim);text-align:center;line-height:1.5;}
-      .inbox-session-banner strong{color:var(--fg);}
-
-      .login-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;overflow-y:auto;}
-      .login-icon{width:80px;height:80px;background:var(--fg);color:var(--accent-fg);border:3px solid var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:38px;box-shadow:6px 6px 0 var(--shadow);margin-bottom:20px;}
-      .login-title{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px;text-align:center;}
-      .login-sub{font-size:13px;color:var(--fg-dim);font-weight:500;text-align:center;margin-bottom:24px;line-height:1.5;}
-      .login-form{width:100%;max-width:320px;}
-      .login-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--fg-dim);margin-bottom:6px;display:block;}
-      .login-input{width:100%;background:#ffffff;border:2px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600;color:var(--fg);outline:none;margin-bottom:12px;box-shadow:inset 2px 2px 0 rgba(0,0,0,.06);transition:box-shadow .35s var(--ease-spring),transform .35s var(--ease-spring);font-family:ui-monospace,monospace;user-select:text;}
-      .login-input:focus{box-shadow:3px 3px 0 var(--shadow);transform:translate(-1px,-1px);}
-      .login-btn{width:100%;padding:14px;background:var(--fg);color:var(--accent-fg);border:3px solid var(--border);border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;box-shadow:4px 4px 0 var(--shadow);transition:transform .35s var(--ease-spring),box-shadow .35s var(--ease-spring);margin-top:4px;}
-      .login-btn:active{transform:translate(2px,2px) scale(.98);box-shadow:1px 1px 0 var(--shadow);}
-      .login-error{background:#ffffff;border:2px solid var(--border);border-left:4px solid #dc2626;border-radius:8px;padding:10px 12px;font-size:11px;font-weight:700;color:#dc2626;margin-bottom:12px;line-height:1.5;display:none;}
-      .login-error.show{display:block;animation:bubbleIn .35s var(--ease-bounce);}
-
-      .bottom-nav-wrapper{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:500;pointer-events:none;transition:transform .45s var(--ease-ios),opacity .35s var(--ease-soft);}
-      .bottom-nav-wrapper.hidden-by-keyboard{transform:translateX(-50%) translateY(130%);opacity:0;}
-      .bottom-nav{width:100%;height:70px;background:var(--surface);border:3px solid var(--border);border-radius:16px;display:flex;padding:6px;gap:4px;box-shadow:6px 6px 0 var(--shadow);position:relative;pointer-events:auto;}
-      .nav-indicator{position:absolute;top:6px;bottom:6px;left:0;background:var(--fg);border-radius:10px;z-index:1;pointer-events:none;transition:transform .55s var(--ease-spring),width .55s var(--ease-spring);}
-      .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--fg-dim);text-decoration:none;font-size:10px;font-weight:700;cursor:pointer;height:100%;position:relative;z-index:2;border-radius:10px;letter-spacing:.5px;text-transform:uppercase;transition:color .35s var(--ease-soft);}
-      .nav-item .icon-wrapper{display:flex;align-items:center;justify-content:center;width:24px;height:24px;transition:transform .45s var(--ease-spring);position:relative;}
-      .nav-item i{font-size:22px;}
-      .nav-item.active{color:var(--accent-fg);}
-      .nav-item.active .icon-wrapper{transform:translateY(-2px) scale(1.08);}
-      .nav-item:active .icon-wrapper{transform:scale(.9);}
-      .nav-badge{position:absolute;top:-4px;right:-6px;background:#dc2626;color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;padding:0 3px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);}
-
-      .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px) scale(.95);background:var(--fg);color:var(--accent-fg);border:2px solid var(--border);padding:12px 18px;border-radius:10px;font-size:12px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .35s var(--ease-soft),transform .5s var(--ease-bounce);z-index:10000;box-shadow:4px 4px 0 var(--shadow);max-width:88%;text-align:center;letter-spacing:.3px;}
-      .toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}
-      .toast.error{background:#ffffff;color:var(--fg);}
-
-      .ph-spin{animation:spin 1s linear infinite;display:inline-block;}
-      @keyframes spin{100%{transform:rotate(360deg);}}
-
-      @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
-    </style>
-  </head>
-  <body>
-    <div id="splash-screen">
-      <div class="splash-icon"><i class="ph-fill ph-robot"></i></div>
-      <div class="splash-title">ALYZ AI AM</div>
-      <div class="splash-subtitle">AI ACTIVATOR</div>
-      <div class="splash-loading-wrapper">
-        <div class="splash-percent" id="splash-percent">1%</div>
-        <div class="splash-progress-bg"><div class="splash-progress-bar" id="splash-progress-bar"></div></div>
-      </div>
+    <div class="warning">
+      <div class="head">[!] PERINGATAN SYSTEM</div>
+      <b>WEB INI SUDAH SAYA HAPUS, JADI ANDA TIDAK BISA MENGAKSESNYA LAGI.</b><br>
+      Semua file, database, dan akses telah dimusnahkan secara permanen dari server. Jangan mencoba membobol, me-reload, atau mengakses ulang. Semua percobaan akan tercatat di log system.
     </div>
 
-    <div class="app" id="appRoot">
-      <div class="views">
-        <div class="view active" id="viewChat">
-          <div class="view-header">
-            <div class="view-avatar"><i class="ph-fill ph-robot"></i></div>
-            <div class="view-header-info">
-              <h2>ALYZ AI AM</h2>
-              <p><span class="status-dot"></span> Alyz Ai Online</p>
-            </div>
-            <div class="view-header-spacer"></div>
-            <button class="view-header-btn" id="btnClearChat" title="Bersihkan chat"><i class="ph ph-trash"></i></button>
-          </div>
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="composer-wrapper" id="composerWrapper">
-            <div class="composer">
-              <textarea class="composer-input" id="composerInput" rows="1" placeholder="Ketik username atau email…"></textarea>
-              <button class="composer-btn" id="btnSend" title="Kirim"><i class="ph-fill ph-paper-plane-tilt"></i></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="view" id="viewInbox">
-          <div class="view-header">
-            <div class="view-avatar"><i class="ph-fill ph-tray"></i></div>
-            <div class="view-header-info">
-              <h2>INBOX</h2>
-              <p><span class="status-dot"></span> pesan per-sesi · persist</p>
-            </div>
-            <div class="view-header-spacer"></div>
-            <button class="view-header-btn" id="btnRefreshInbox" title="Refresh"><i class="ph ph-arrows-clockwise"></i></button>
-            <button class="view-header-btn" id="btnLogoutInbox" title="Logout" style="margin-left:6px;"><i class="ph ph-sign-out"></i></button>
-          </div>
-          <div class="inbox-list" id="inboxList"></div>
-        </div>
-      </div>
-
-      <div class="bottom-nav-wrapper" id="bottomNavWrapper">
-        <nav class="bottom-nav">
-          <div class="nav-indicator" id="navIndicator"></div>
-          <a class="nav-item active" data-target="chat" id="navChat">
-            <div class="icon-wrapper"><i class="ph-fill ph-chat-circle-dots"></i></div>
-            <span>Chat</span>
-          </a>
-          <a class="nav-item" data-target="inbox" id="navInbox">
-            <div class="icon-wrapper">
-              <i class="ph ph-tray"></i>
-              <span class="nav-badge" id="inboxBadge" style="display:none;">0</span>
-            </div>
-            <span>Inbox</span>
-          </a>
-        </nav>
-      </div>
+    <div class="terminal">
+      <span class="gray">root@alyz:~#</span> <span class="white">cat /var/www/index.html</span><br>
+      <span class="green">[ERROR]</span> File not found - 404<br>
+      <span class="green">[DELETED]</span> by owner @ <span class="white" id="time"></span><br>
+      <span class="green">[STATUS]</span> PERMANENTLY REMOVED<br>
+      <span class="gray">root@alyz:~#</span> <span class="white">exit_</span><span class="cursor"></span>
     </div>
 
-    <div class="popup-overlay" id="popupOverlay">
-      <div class="popup-card">
-        <div class="popup-header">
-          <div class="popup-icon" id="popupIcon"><i class="ph ph-tray"></i></div>
-          <div class="popup-header-text">
-            <h3 id="popupTitle">Inbox</h3>
-            <p id="popupSubtitle">Pesan tersimpan</p>
-          </div>
-          <div class="popup-close" id="popupClose"><i class="ph ph-x"></i></div>
-        </div>
-        <div class="popup-body" id="popupBody"></div>
-      </div>
+    <div class="btn-row">
+      <a class="btn" href="https://whatsapp.com/channel/0029VbEBCKSGU3BOuJVIg93x" target="_blank">💬 CHANNEL ALYZ</a>
+      <button class="btn outline" onclick="location.reload()">↻ COBA LAGI</button>
     </div>
+  </div>
 
-    <div class="toast" id="toast"></div>
+  <div class="footer">© 2026 <b>ALYZ</b> • TERMINAL DELETED • <span id="ip">IP: 127.0.0.1</span></div>
+</div>
 
-    <script>
-    /* ============================================================
-       KONFIGURASI
-       ============================================================ */
-    const API_KEY = "AIzaSyDtG1AU22ErnQD60AzBAcaknySiz9_CEq0";
-    const IDT = "https://www.googleapis.com/identitytoolkit/v3/relyingparty";
-    const VERIFY_URL = "https://us-central1-alight-creative.cloudfunctions.net/verifyPurchase";
-    const PURCHASE_TOKEN = "mmgaobamlahbbeccfplmbkbb.AO-J1OzqG0or_GJJIx-ms8GrTm-jaglCRfhQSRPUZKpl2YspYS-oN7_94uv8RC5vQbvd_Ios2pPDStZ2n7F0hLE3FiOU7HS3R6Fquulv5xLXFECSv4ctElw";
-    const FIREBASE_INSTANCE_ID_TOKEN = "cSDnCyp3T-uwp07z3tL86T:APA91bFkmvvsHw5nnqa1SBFci-99DRsKClLiETdRrVcJjS5yBx1v_FbCb1d8WhBuea_zmwnYBktyTIzcRhN4b6uNOUur9wPc0gKXmJDoZic0LhNq5V2s0xI";
-    const ANDROID_HEADERS = {
-      "content-type": "application/json",
-      "x-android-package": "com.alightcreative.motion",
-      "x-android-cert": "ECA6BF91B8715A6F810ED0BBFC65B6CD578F52A8",
-      "user-agent": "dalvik/2.1.0 (linux; u; android 15; 23127pn0cc build/bp1a.250505.005)"
-    };
-    const VERIFY_HEADERS = { "content-type": "application/json; charset=utf-8", "user-agent": "okhttp/3.12.1" };
-
-    const GUERRILLA_API = "https://api.guerrillamail.com/ajax.php";
-    const PROXIES = [
-      '',
-      'https://corsproxy.io/?',
-      'https://api.allorigins.win/raw?url=',
-      'https://thingproxy.freeboard.io/fetch/'
-    ];
-    const FIXED_PASSWORD = "ALYZDEVBAIK";
-
-    const LS_CHAT = 'alyz_chat_v5';
-    const LS_INBOX = 'alyz_inbox_v6';
-    const LS_SESSION = 'alyz_session_v5';
-    const LS_AUTH = 'alyz_auth_v5';
-
-    let chatMsgs = [];
-    let inboxByEmail = {};
-    let inboxMsgs = [];
-    let session = { email:'', sid_token:'', email_user:'', createdAt:null };
-    let auth = null;
-    let sending = false;
-    let polling = null;
-    let knownIds = new Set();
-    let customEmailHistory = [];
-
-    /* ============================================================
-       STORAGE
-       ============================================================ */
-    function loadAll() {
-      try { chatMsgs = JSON.parse(localStorage.getItem(LS_CHAT) || '[]'); } catch { chatMsgs = []; }
-      try { inboxByEmail = JSON.parse(localStorage.getItem(LS_INBOX) || '{}'); } catch { inboxByEmail = {}; }
-      try { session = JSON.parse(localStorage.getItem(LS_SESSION) || 'null') || session; } catch {}
-      try { auth = JSON.parse(localStorage.getItem(LS_AUTH) || 'null'); } catch { auth = null; }
-      try { customEmailHistory = JSON.parse(localStorage.getItem('alyz_custom_emails_v1') || '[]'); } catch { customEmailHistory = []; }
-      if (!inboxByEmail || typeof inboxByEmail !== 'object') inboxByEmail = {};
-      syncActiveInbox();
+<script>
+  // MATRIX MERAH
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+  resize(); addEventListener('resize', resize);
+  const chars = '01アイザックALYZDELETED403HACKER<>/#$%&@!?*+-=';
+  const fontSize = 14;
+  let columns = Math.floor(canvas.width / fontSize);
+  let drops = Array(columns).fill(1);
+  function draw(){
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.font = fontSize + 'px monospace';
+    for(let i=0;i<drops.length;i++){
+      const text = chars[Math.floor(Math.random()*chars.length)];
+      // Gradasi merah
+      const r = Math.random();
+      ctx.fillStyle = r > 0.9 ? '#ffffff' : r > 0.5 ? '#ff1a1a' : '#7a0000';
+      ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+      if(drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i]=0;
+      drops[i]++;
     }
-    function saveChat() { try { localStorage.setItem(LS_CHAT, JSON.stringify(chatMsgs.slice(-200))); } catch {} }
-    function saveInbox() {
-      try {
-        const key = (session && session.email) ? session.email.toLowerCase() : '';
-        if (!key) return;
-        inboxByEmail[key] = inboxMsgs;
-        localStorage.setItem(LS_INBOX, JSON.stringify(inboxByEmail));
-      } catch {}
+  }
+  setInterval(draw, 50);
+
+  // TYPING EFFECT
+  const msg = '> WEB INI SUDAH SAYA HAPUS, JADI ANDA TIDAK BISA MENGAKSESNYA LAGI.';
+  const el = document.getElementById('typing');
+  let idx = 0;
+  function type(){
+    if(idx <= msg.length){
+      el.innerHTML = msg.slice(0, idx) + '<span class="cursor"></span>';
+      idx++;
+      setTimeout(type, 35);
     }
-    function saveSession() { try { localStorage.setItem(LS_SESSION, JSON.stringify(session)); } catch {} }
-    function saveAuth() { try { localStorage.setItem(LS_AUTH, JSON.stringify(auth)); } catch {} }
-    function clearAuth() { auth = null; try { localStorage.removeItem(LS_AUTH); } catch {} }
-    function saveCustomEmailHistory() { try { localStorage.setItem('alyz_custom_emails_v1', JSON.stringify(customEmailHistory.slice(-50))); } catch {} }
+  }
+  type();
 
-    function syncActiveInbox() {
-      const key = (session && session.email) ? session.email.toLowerCase() : '';
-      if (!key) { inboxMsgs = []; return; }
-      if (!Array.isArray(inboxByEmail[key])) inboxByEmail[key] = [];
-      inboxMsgs = inboxByEmail[key];
-      knownIds = new Set(inboxMsgs.map(m => m.gmId).filter(Boolean));
-    }
+  // JAM + IP PALSU
+  document.getElementById('time').textContent = new Date().toLocaleString('id-ID');
+  document.getElementById('ip').textContent = 'IP: ' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255) + '.' + Math.floor(Math.random()*255) + ' LOGGED';
 
-    /* ============================================================
-       HELPERS
-       ============================================================ */
-    function toast(msg, type='') {
-      const t = document.getElementById('toast');
-      t.innerText = msg; t.className = 'toast show ' + type;
-      clearTimeout(t._tid);
-      t._tid = setTimeout(() => t.classList.remove('show'), 2800);
-    }
-    function fmtTime(iso) {
-      try {
-        const d = new Date(iso), now = new Date();
-        const sameDay = d.toDateString() === now.toDateString();
-        if (sameDay) return d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-        return d.toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-      } catch { return ''; }
-    }
-    function esc(s) {
-      return String(s||'').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-    }
-    function autoScroll() {
-      const el = document.getElementById('chatMessages');
-      if (el) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-    }
-    function copyToClipboard(text) {
-      if (!text) return;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => toast('Link disalin ✓')).catch(() => fallbackCopy(text));
-      } else fallbackCopy(text);
-    }
-    function fallbackCopy(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); toast('Link disalin ✓'); } catch { toast('Gagal salin', 'error'); }
-      document.body.removeChild(ta);
-    }
-
-    /* ============================================================
-       RENDER CHAT
-       ============================================================ */
-    function renderChat() {
-      const box = document.getElementById('chatMessages');
-      box.innerHTML = chatMsgs.map(m => {
-        if (m.role === 'user') return `<div class="bubble user">${esc(m.text)}</div>`;
-        if (m.role === 'ai') return `<div class="bubble ai"><div class="ai-name"><i class="ph-fill ph-robot"></i> ALYZ AI</div>${esc(m.text)}${renderCta(m.cta)}</div>`;
-        if (m.role === 'log') return `<div class="bubble log">${m.lines.map(l => logLine(l)).join('')}</div>`;
-        if (m.role === 'typing') return `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
-        return '';
-      }).join('');
-      autoScroll();
-    }
-    function logLine(l) {
-      const cls = l.type === 'ok' ? 'log-ok' : l.type === 'warn' ? 'log-warn' : l.type === 'err' ? 'log-err' : 'log-info';
-      const icon = l.type === 'ok' ? 'ph-check-circle' : l.type === 'warn' ? 'ph-warning' : l.type === 'err' ? 'ph-x-circle' : 'ph-dot';
-      return `<div class="log-line"><i class="ph-fill ${icon} log-icon ${cls}"></i><span class="${cls}">${esc(l.text)}</span></div>`;
-    }
-    function renderCta(cta) {
-      if (!cta || !cta.length) return '';
-      return `<div class="bubble-cta">${cta.map(c => 
-        `<button class="cta-btn ${c.style||''}" data-cta="${c.action}" data-email="${esc(c.email||'')}" ${c.disabled?'disabled':''}>
-           <i class="ph ${c.icon||'ph-arrow-right'}"></i>${esc(c.label)}
-         </button>`).join('')}</div>`;
-    }
-
-    /* ============================================================
-       LOGIN / LOGOUT
-       ============================================================ */
-    function isLoggedIn() { return !!(auth && auth.email && auth.password); }
-
-    function updateLogoutButtonVisibility() {
-      const btn = document.getElementById('btnLogoutInbox');
-      if (!btn) return;
-      if (isLoggedIn()) btn.classList.remove('hidden-btn');
-      else btn.classList.add('hidden-btn');
-    }
-
-    function renderInboxGate() {
-      const list = document.getElementById('inboxList');
-      updateLogoutButtonVisibility();
-      if (!isLoggedIn()) {
-        const lastEmail = session.email || '';
-        list.innerHTML = `
-          <div class="login-screen">
-            <div class="login-icon"><i class="ph-fill ph-lock-key"></i></div>
-            <div class="login-title">Login Inbox</div>
-            <div class="login-sub">Masukkan email dan password untuk melihat pesan.<br>Password default: <strong>${FIXED_PASSWORD}</strong></div>
-            <div class="login-form">
-              <div class="login-error" id="loginError"></div>
-              <label class="login-label">Email</label>
-              <input class="login-input" id="loginEmail" type="text" placeholder="emailmu@guerrillamail.com" value="${esc(lastEmail)}" />
-              <label class="login-label">Password</label>
-              <input class="login-input" id="loginPass" type="password" placeholder="${FIXED_PASSWORD}" />
-              <button class="login-btn" id="loginBtn"><i class="ph ph-sign-in" style="vertical-align:middle;margin-right:6px;"></i>Masuk Inbox</button>
-            </div>
-          </div>
-        `;
-        const lb = document.getElementById('loginBtn');
-        if (lb) lb.onclick = doLogin;
-        const lp = document.getElementById('loginPass');
-        if (lp) lp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-        return;
-      }
-      renderInboxListContent();
-    }
-
-    function doLogin() {
-      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-      const pass = document.getElementById('loginPass').value;
-      const err = document.getElementById('loginError');
-      err.classList.remove('show');
-      if (!email || !pass) { err.textContent = 'Email dan password wajib diisi.'; err.classList.add('show'); return; }
-      if (pass !== FIXED_PASSWORD) { err.textContent = '❌ Password salah. Password default: ' + FIXED_PASSWORD; err.classList.add('show'); return; }
-      if (session.email && email !== session.email.toLowerCase()) { err.textContent = '❌ Email tidak cocok: ' + session.email; err.classList.add('show'); return; }
-      auth = { email, password: pass, ts: new Date().toISOString() };
-      saveAuth();
-      syncActiveInbox();
-      toast('Login berhasil ✅');
-      renderInboxGate();
-      checkInbox().catch(()=>{});
-    }
-
-    function doLogout() {
-      if (!isLoggedIn()) { toast('Belum login', 'error'); return; }
-      clearAuth();
-      updateLogoutButtonVisibility();
-      renderInboxGate();
-      updateInboxBadge();
-      toast('Logout berhasil ✅');
-    }
-
-    /* ============================================================
-       RENDER INBOX (list) — per sesi
-       ============================================================ */
-    function renderInboxListContent() {
-      const list = document.getElementById('inboxList');
-      updateInboxBadge();
-      updateLogoutButtonVisibility();
-      if (!session.email) {
-        list.innerHTML = `<div class="inbox-session-banner">Belum ada email aktif.<br>Ketik username di chat dulu.</div>`;
-        return;
-      }
-      syncActiveInbox();
-      let html = `<div class="inbox-session-banner">Inbox aktif: <strong>${esc(session.email)}</strong><br>${inboxMsgs.length} pesan tersimpan</div>`;
-      if (!inboxMsgs.length) {
-        html += `<div class="inbox-empty"><i class="ph ph-tray"></i>Belum ada pesan.</div>`;
-        list.innerHTML = html; return;
-      }
-      html += inboxMsgs.map(m => `
-        <div class="inbox-item" data-id="${m.id}">
-          <div class="inbox-item-head">
-            <div class="inbox-item-from">${esc(m.from||'Alight Motion')}</div>
-            <div class="inbox-item-date">${fmtTime(m.date)}</div>
-          </div>
-          <div class="inbox-item-subject">${esc(m.subject||'(Tanpa subjek)')}</div>
-          <div class="inbox-item-preview">${esc(m.preview||'')}</div>
-          <div class="inbox-item-actions">
-            <button class="cta-btn secondary" data-inbox-action="view" data-id="${m.id}"><i class="ph ph-envelope-open"></i> Lihat</button>
-            ${m.magicLink ? `<button class="cta-btn" data-inbox-action="copy" data-id="${m.id}"><i class="ph ph-copy"></i> Copy Link</button>` : ''}
-            ${m.magicLink ? `<button class="cta-btn" data-inbox-action="tempel" data-id="${m.id}"><i class="ph ph-lightning"></i> Aktivasi</button>` : ''}
-          </div>
-        </div>
-      `).join('');
-      list.innerHTML = html;
-      list.querySelectorAll('[data-inbox-action]').forEach(btn => {
-        btn.onclick = () => {
-          const id = Number(btn.dataset.id);
-          const msg = inboxMsgs.find(x => x.id === id);
-          if (!msg) return;
-          const act = btn.dataset.inboxAction;
-          if (act === 'view') showInboxDetail(msg);
-          if (act === 'copy') copyToClipboard(msg.magicLink);
-          if (act === 'tempel') openTempelPopup(msg.magicLink || '');
-        };
-      });
-    }
-
-    /* ============================================================
-       POPUP
-       ============================================================ */
-    const popupOverlay = document.getElementById('popupOverlay');
-    const popupIcon = document.getElementById('popupIcon');
-    const popupTitle = document.getElementById('popupTitle');
-    const popupSubtitle = document.getElementById('popupSubtitle');
-    const popupBody = document.getElementById('popupBody');
-
-    function openPopup({ icon, title, subtitle, body, danger }) {
-      popupIcon.innerHTML = `<i class="ph ${icon||'ph-info'}"></i>`;
-      popupIcon.className = 'popup-icon' + (danger ? ' danger' : '');
-      popupTitle.innerText = title; popupSubtitle.innerText = subtitle || '';
-      popupBody.innerHTML = body;
-      popupOverlay.classList.add('active');
-    }
-    function closePopup() { popupOverlay.classList.remove('active'); }
-    document.getElementById('popupClose').onclick = closePopup;
-    popupOverlay.addEventListener('click', e => { if (e.target === popupOverlay) closePopup(); });
-
-    /* ============================================================
-       POPUP KONFIRMASI HAPUS CHAT
-       ============================================================ */
-    function showClearChatConfirm() {
-      openPopup({
-        icon:'ph-trash',
-        danger:true,
-        title:'Hapus Chat?',
-        subtitle:'Tindakan ini tidak bisa dibatalkan',
-        body: `
-          <div class="popup-hint">Semua bubble chat akan dihapus.<br><br>Inbox tetap tersimpan di perangkat.</div>
-          <div class="confirm-actions">
-            <button class="cta-btn secondary" id="clearCancelBtn"><i class="ph ph-x"></i> Batal</button>
-            <button class="cta-btn danger" id="clearConfirmBtn"><i class="ph ph-trash"></i> Hapus</button>
-          </div>
-        `
-      });
-      document.getElementById('clearCancelBtn').onclick = closePopup;
-      document.getElementById('clearConfirmBtn').onclick = () => {
-        chatMsgs = [];
-        saveChat();
-        renderChat();
-        closePopup();
-        toast('Chat telah dibersihkan ✅');
-      };
-    }
-
-    /* ============================================================
-       POPUP KONFIRMASI LOGOUT
-       ============================================================ */
-    function showLogoutConfirm() {
-      if (!isLoggedIn()) { toast('Belum login', 'error'); return; }
-      openPopup({
-        icon:'ph-sign-out',
-        title:'Logout Inbox?',
-        subtitle:'Kamu bisa login lagi kapan saja',
-        body: `
-          <div class="popup-hint">Sesi inbox di perangkat ini akan ditutup.<br><br>Pesan tetap tersimpan per email.</div>
-          <div class="confirm-actions">
-            <button class="cta-btn secondary" id="logoutCancelBtn"><i class="ph ph-x"></i> Batal</button>
-            <button class="cta-btn danger" id="logoutConfirmBtn"><i class="ph ph-sign-out"></i> Logout</button>
-          </div>
-        `
-      });
-      document.getElementById('logoutCancelBtn').onclick = closePopup;
-      document.getElementById('logoutConfirmBtn').onclick = () => {
-        closePopup();
-        doLogout();
-      };
-    }
-
-    function showInboxPopup() {
-      if (!isLoggedIn()) { activateView('inbox'); toast('Login dulu untuk buka inbox'); return; }
-      if (!session.email) {
-        openPopup({ icon:'ph-tray', title:'Inbox', subtitle:'Belum ada email aktif', body: `<div class="inbox-empty"><i class="ph ph-envelope-simple-open"></i>Ketik username di chat dulu.</div>` });
-        return;
-      }
-      syncActiveInbox();
-      let html = `<div class="popup-hint">Inbox aktif: <code>${esc(session.email)}</code></div>`;
-      if (!inboxMsgs.length) {
-        html += `<div class="inbox-empty"><i class="ph ph-tray"></i>Belum ada pesan.</div>`;
-      } else {
-        html += inboxMsgs.map(m => `
-          <div class="inbox-item">
-            <div class="inbox-item-head">
-              <div class="inbox-item-from">${esc(m.from||'Alight Motion')}</div>
-              <div class="inbox-item-date">${fmtTime(m.date)}</div>
-            </div>
-            <div class="inbox-item-subject">${esc(m.subject||'(Tanpa subjek)')}</div>
-            <div class="inbox-item-preview">${esc(m.preview||'')}</div>
-            <div class="inbox-item-actions">
-              <button class="cta-btn secondary" data-popup-view="${m.id}"><i class="ph ph-envelope-open"></i> Detail</button>
-              ${m.magicLink ? `<button class="cta-btn" data-popup-copy="${m.id}"><i class="ph ph-copy"></i> Copy</button>` : ''}
-              ${m.magicLink ? `<button class="cta-btn" data-popup-tempel="${m.id}"><i class="ph ph-lightning"></i> Aktivasi</button>` : ''}
-            </div>
-          </div>
-        `).join('');
-      }
-      openPopup({ icon:'ph-tray', title:'Inbox', subtitle:session.email, body: html });
-      popupBody.querySelectorAll('[data-popup-view]').forEach(b => {
-        b.onclick = () => { const msg = inboxMsgs.find(x => x.id === Number(b.dataset.popupView)); if (msg) showInboxDetail(msg); };
-      });
-      popupBody.querySelectorAll('[data-popup-copy]').forEach(b => {
-        b.onclick = () => { const msg = inboxMsgs.find(x => x.id === Number(b.dataset.popupCopy)); if (msg) copyToClipboard(msg.magicLink); };
-      });
-      popupBody.querySelectorAll('[data-popup-tempel]').forEach(b => {
-        b.onclick = () => { const msg = inboxMsgs.find(x => x.id === Number(b.dataset.popupTempel)); if (msg) openTempelPopup(msg.magicLink || ''); };
-      });
-    }
-
-    function showInboxDetail(msg) {
-      msg.read = true; saveInbox(); renderInboxListContent(); updateInboxBadge();
-      const linkBlock = msg.magicLink
-        ? `<div class="popup-hint" style="margin-top:8px;">Link terdeteksi ✅</div>
-           <div class="popup-field" style="font-size:10px; user-select:text; cursor:text; -webkit-user-select:text; white-space:pre-wrap; word-break:break-all;">${esc(msg.magicLink)}</div>
-           <div style="display:flex;gap:6px;">
-             <button class="cta-btn secondary" id="popupCopyLink" style="flex:1;"><i class="ph ph-copy"></i> Copy</button>
-             <button class="cta-btn" id="popupUseLink" style="flex:1;"><i class="ph ph-lightning"></i> Aktivasi</button>
-           </div>`
-        : `<div class="popup-hint">Tidak ada link di pesan ini.</div>`;
-      openPopup({
-        icon:'ph-envelope-open',
-        title: msg.subject || '(Tanpa subjek)',
-        subtitle: `Dari: ${msg.from || 'Alight Motion'} · ${fmtTime(msg.date)}`,
-        body: `<div class="popup-hint" style="white-space:pre-wrap;">${esc(msg.body || msg.preview || '')}</div>${linkBlock}`
-      });
-      if (msg.magicLink) {
-        document.getElementById('popupCopyLink').onclick = () => copyToClipboard(msg.magicLink);
-        document.getElementById('popupUseLink').onclick = () => openTempelPopup(msg.magicLink);
-      }
-    }
-
-    /* ============================================================
-       POPUP AKTIVASI — field KOSONG
-       ============================================================ */
-    function openTempelPopup(prefill = '') {
-      openPopup({
-        icon:'ph-lightning', title:'Aktivasi', subtitle:'Tempel link dari email',
-        body: `
-          <div class="popup-hint">Tempel link yang kamu terima dari email di bawah ini.</div>
-          <textarea class="popup-field" id="tempelInput" rows="4" placeholder="Tempel magic link di sini…"></textarea>
-          <button class="cta-btn" id="tempelBtn" style="width:100%;"><i class="ph ph-lightning"></i> Verifikasi & Aktivasi</button>
-        `
-      });
-      setTimeout(() => {
-        const inp = document.getElementById('tempelInput');
-        if (inp) { inp.focus(); }
-      }, 300);
-      document.getElementById('tempelBtn').onclick = async () => {
-        const link = document.getElementById('tempelInput').value.trim();
-        if (!link) return toast('Tempel link dulu', 'error');
-        closePopup();
-        await runActivation(link);
-      };
-    }
-
-    /* ============================================================
-       CHAT PUSH
-       ============================================================ */
-    function pushMsg(msg) { chatMsgs.push(msg); saveChat(); renderChat(); }
-    function pushLog(lines) { chatMsgs.push({ role:'log', lines, ts: Date.now() }); saveChat(); renderChat(); }
-    function showTyping() { chatMsgs.push({ role:'typing', ts: Date.now() }); renderChat(); }
-    function hideTyping() { chatMsgs = chatMsgs.filter(m => m.role !== 'typing'); saveChat(); renderChat(); }
-
-    /* ============================================================
-       VALIDASI
-       ============================================================ */
-    function looksLikeEmail(t) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t.trim());
-    }
-    function validateInput(text) {
-      const t = text.trim();
-      if (!t) return { ok:false, why:'Kosong.' };
-      if (looksLikeEmail(t)) {
-        if (t.length > 254) return { ok:false, why:'❌ Email terlalu panjang.' };
-        return { ok:true, kind:'email', value:t.toLowerCase() };
-      }
-      if (/\s/.test(t)) return { ok:false, why:'❌ Satu kata tanpa spasi, atau email valid.\nContoh: alyzemail / nama@gmail.com' };
-      if (t.length > 15) return { ok:false, why:'❌ Username maks 15 karakter.\nContoh: alyzemail' };
-      if (!/^[a-zA-Z0-9._-]+$/.test(t)) return { ok:false, why:'❌ Hanya huruf, angka, titik, underscore, strip.' };
-      return { ok:true, kind:'username', value:t.toLowerCase() };
-    }
-
-    /* ============================================================
-       GUERRILLA API + PROXY
-       ============================================================ */
-    async function fetchWithRetry(url, opts = {}) {
-      let lastErr = null;
-      for (const proxy of PROXIES) {
-        let u;
-        if (!proxy) u = url;
-        else if (proxy === 'https://api.allorigins.win/raw?url=') u = proxy + encodeURIComponent(url);
-        else u = proxy + encodeURIComponent(url);
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 12000);
-          const r = await fetch(u, { ...opts, signal: controller.signal });
-          clearTimeout(timeout);
-          if (!r.ok) { lastErr = new Error('HTTP ' + r.status); continue; }
-          return await r.json();
-        } catch (e) { lastErr = e; }
-      }
-      throw lastErr || new Error('Semua proxy gagal');
-    }
-    async function guerrilla(method, params = {}) {
-      const url = new URL(GUERRILLA_API);
-      url.searchParams.set('f', method);
-      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-      return await fetchWithRetry(url.toString(), { credentials:'omit' });
-    }
-    async function guerrillaGetEmailUser() {
-      const j = await guerrilla('get_email_address');
-      if (!j.email_addr) throw new Error('Response tidak valid');
-      return { email: j.email_addr, sid_token: j.sid_token, emailUser: j.email_addr.split('@')[0] };
-    }
-    async function guerrillaSetEmailUser(user) {
-      const j = await guerrilla('set_email_user', { email_user: user, lang:'en', site:'guerrillamail.com' });
-      if (!j.email_addr) throw new Error('Set user gagal');
-      return { email: j.email_addr, sid_token: j.sid_token, emailUser: user };
-    }
-    async function guerrillaCheck(sidToken) {
-      const j = await guerrilla('check_email', { sid_token: sidToken, seq: 0 });
-      return { list: j.list || [], sidToken: j.sid_token || sidToken };
-    }
-    async function guerrillaFetch(sidToken, id) {
-      return await guerrilla('fetch_email', { sid_token: sidToken, email_id: id });
-    }
-
-    /* ============================================================
-       DETEKSI LINK
-       ============================================================ */
-    function extractLink(html) {
-      if (!html) return null;
-      const hrefMatches = html.match(/href\s*=\s*["']([^"']+)["']/gi) || [];
-      const urls = [];
-      for (const h of hrefMatches) {
-        const m = h.match(/href\s*=\s*["']([^"']+)["']/i);
-        if (m && m[1] && /^https?:\/\//i.test(m[1])) urls.push(m[1].replace(/&amp;/g,'&'));
-      }
-      const plainMatches = html.match(/https?:\/\/[^\s"'<>)]+/gi) || [];
-      for (const u of plainMatches) urls.push(u.replace(/&amp;/g,'&'));
-      const withOob = urls.filter(u => /oobCode=/i.test(u));
-      if (withOob.length) return withOob[0];
-      const firebaseLink = urls.filter(u => /firebaseapp\.com|alightcreative|verify/i.test(u));
-      if (firebaseLink.length) return firebaseLink[0];
-      const filtered = urls.filter(u => !/google\.com|gstatic|googleapis|facebook|twitter|instagram/i.test(u));
-      if (filtered.length) return filtered[0];
-      return urls[0] || null;
-    }
-    function stripHtml(html) {
-      if (!html) return '';
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      return tmp.textContent || tmp.innerText || '';
-    }
-
-    /* ============================================================
-       FIREBASE
-       ============================================================ */
-    async function postIdentityToolkit(path, payload, key = API_KEY) {
-      const res = await fetch(`${IDT}/${path}?key=${encodeURIComponent(key)}`, {
-        method:'POST', headers: ANDROID_HEADERS, body: JSON.stringify(payload)
-      });
-      const data = await res.json().catch(() => ({}));
-      return { response: res, data };
-    }
-    async function sendMagicLink(email) {
-      const normalized = email.trim().toLowerCase();
-      try {
-        const { response, data } = await postIdentityToolkit('getOobConfirmationCode', {
-          requestType: 6, email: normalized, androidInstallApp: true, canHandleCodeInApp: true,
-          continueUrl: 'https://alightcreative.com?ui_sid=0366624874&ui_sd=0',
-          iosBundleId: 'com.alightcreative.motion', androidPackageName: 'com.alightcreative.motion',
-          androidMinimumVersion: '585', clientType: 'CLIENT_TYPE_ANDROID'
-        });
-        if (!response.ok) return { ok:false, httpStatus:response.status, error: data?.error?.message || 'Auth failed' };
-        return { ok:true, email:normalized };
-      } catch (e) { return { ok:false, error: e.message || 'Network error' }; }
-    }
-    function extractCode(raw) {
-      if (!raw) return null;
-      let value = String(raw).replace(/&amp;/g,'&');
-      try { value = decodeURIComponent(value); } catch(_) {}
-      try {
-        const url = new URL(value);
-        let code = url.searchParams.get('oobCode');
-        if (!code) {
-          const nested = url.searchParams.get('link') || url.searchParams.get('q') || url.searchParams.get('url');
-          if (nested) { try { code = new URL(nested).searchParams.get('oobCode'); } catch(_) {} }
-        }
-        if (code) return code.replace(/[^a-zA-Z0-9_-]/g, '');
-      } catch(_) {}
-      const m = value.match(/[?&]oobCode=([a-zA-Z0-9_-]+)/i);
-      if (m) return m[1];
-      const trimmed = String(raw).trim();
-      return /^[a-zA-Z0-9_-]{10,}$/.test(trimmed) && !trimmed.includes('://') ? trimmed : null;
-    }
-    async function authUser(email, rawLink) {
-      const code = extractCode(rawLink);
-      if (!code) return { ok:false, why:'oobCode tidak ditemukan.' };
-      let linkKey = null;
-      const m = String(rawLink).replace(/&amp;/g,'&').match(/[?&]apiKey=([^&]+)/i);
-      if (m) { try { linkKey = decodeURIComponent(m[1]); } catch(_) { linkKey = m[1]; } }
-      const keys = linkKey && linkKey !== API_KEY ? [API_KEY, linkKey] : [API_KEY];
-      let lastError = 'Verifikasi gagal.';
-      for (const key of keys) {
-        try {
-          const { response, data } = await postIdentityToolkit('emailLinkSignin', {
-            email: email.trim().toLowerCase(), oobCode: code, clientType: 'CLIENT_TYPE_ANDROID'
-          }, key);
-          if (!response.ok) { lastError = data?.error?.message || JSON.stringify(data); continue; }
-          return { ok:true, email: email.trim().toLowerCase(), idToken: data.idToken, uid: data.localId };
-        } catch(e) { lastError = e.message || String(e); }
-      }
-      return { ok:false, why: lastError };
-    }
-    function generateOrderId() {
-      const rd = (n) => { let r=''; while(r.length<n) r += Math.floor(Math.random()*10).toString(); return r.slice(0,n); };
-      return `ALYZLOVE-YAYA.${rd(4)}-${rd(4)}-${rd(4)}-${rd(5)}`;
-    }
-    async function activatePro(idToken) {
-      const orderId = generateOrderId();
-      const payload = { data: { productId:'am.full.sub.annual.19q4', token:PURCHASE_TOKEN, skuType:'subs', orderId } };
-      try {
-        const res = await fetch(VERIFY_URL, {
-          method:'POST',
-          headers: { ...VERIFY_HEADERS, authorization: `Bearer ${idToken}`, 'firebase-instance-id-token': FIREBASE_INSTANCE_ID_TOKEN },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || (data?.result?.status !== 'success' && !data?.result?.valid)) {
-          return { ok:false, order:orderId, httpStatus:res.status, why: JSON.stringify(data) };
-        }
-        return { ok:true, order:orderId, result:data };
-      } catch(e) { return { ok:false, order:orderId, why: e.message || String(e) }; }
-    }
-
-    /* ============================================================
-       FLOW: EMAIL CUSTOM
-       ============================================================ */
-    async function runCustomEmail(email) {
-      if (sending) return;
-      sending = true;
-
-      pushMsg({ role:'user', text: email, ts:Date.now() });
-      showTyping();
-      await new Promise(r => setTimeout(r, 400));
-      hideTyping();
-
-      pushLog([
-        { type:'info', text:'Mode email custom: ' + email },
-        { type:'info', text:'Kirim magic link ke ' + email + '…' }
-      ]);
-
-      const res = await sendMagicLink(email);
-      if (!res.ok) {
-        pushLog([
-          { type:'err', text:'GAGAL KIRIM: ' + (res.error||'server tolak') },
-          { type:'warn', text:'Pastikan email valid & coba lagi.' }
-        ]);
-        pushMsg({ role:'ai', text:'❌ Gagal kirim magic link ke ' + email, ts:Date.now() });
-        sending = false; return;
-      }
-
-      customEmailHistory.push({ email, ts: Date.now() });
-      saveCustomEmailHistory();
-
-      pushLog([
-        { type:'ok', text:'MAGIC LINK TERKIRIM ke ' + email },
-        { type:'info', text:'Buka inbox email kamu, copy link, lalu tekan AKTIVASI.' }
-      ]);
-
-      pushMsg({
-        role:'ai',
-        text:`✅ MAGIC LINK TERKIRIM!\n\n📧 Tujuan: ${email}\n\nLangkah:\n1. Buka inbox ${email}\n2. Cari email dari Alight Motion\n3. Copy magic link di dalamnya\n4. Tekan tombol AKTIVASI → tempel link → verifikasi`,
-        cta: [
-          { label:'AKTIVASI', action:'open-tempel', icon:'ph-lightning', email },
-          { label:'BUKA INBOX LOKAL', action:'inbox', icon:'ph-tray' }
-        ],
-        ts: Date.now()
-      });
-
-      sending = false;
-    }
-
-    /* ============================================================
-       FLOW: BUAT EMAIL GUERRILLA
-       ============================================================ */
-    async function runAlyzemail(username) {
-      if (sending) return;
-      sending = true;
-
-      pushMsg({ role:'user', text: username, ts:Date.now() });
-      showTyping();
-      await new Promise(r => setTimeout(r, 400));
-      hideTyping();
-
-      pushLog([{ type:'info', text:'Menghubungi guerrillamail…' }]);
-
-      try {
-        await guerrillaGetEmailUser();
-        pushLog([{ type:'ok', text:'SID diterima' }]);
-        const finalEmail = await guerrillaSetEmailUser(username);
-
-        stopPolling();
-        session = { email: finalEmail.email, sid_token: finalEmail.sid_token, email_user: username, createdAt: new Date().toISOString() };
-        saveSession();
-        syncActiveInbox();
-        knownIds = new Set(inboxMsgs.map(m => m.gmId).filter(Boolean));
-
-        pushLog([{ type:'ok', text:'EMAIL DIBUAT: ' + finalEmail.email }]);
-
-        auth = { email: finalEmail.email, password: FIXED_PASSWORD, ts: new Date().toISOString() };
-        saveAuth();
-        updateLogoutButtonVisibility();
-        pushLog([{ type:'ok', text:'AUTO-LOGIN INBOX: password "' + FIXED_PASSWORD + '"' }]);
-
-        pushLog([{ type:'info', text:'Kirim link ke ' + finalEmail.email + '…' }]);
-        const res = await sendMagicLink(finalEmail.email);
-        if (!res.ok) {
-          pushLog([{ type:'err', text:'GAGAL KIRIM: ' + (res.error||'server tolak') }]);
-          pushMsg({ role:'ai', text:'Gagal kirim link. Coba username lain.', ts:Date.now() });
-          sending = false; return;
-        }
-        pushLog([{ type:'ok', text:'LINK TERKIRIM' }]);
-        pushLog([{ type:'info', text:'Polling inbox tiap 3 detik…' }]);
-
-        pushMsg({
-          role:'ai',
-          text:`✅ EMAIL REAL DIBUAT!\n\n📧 Email: ${finalEmail.email}\n🔑 Password: ${FIXED_PASSWORD}\n\nAI cek inbox tiap 3 detik. Inbox email ini terpisah dari email lain.`,
-          cta: [
-            { label:'BUKA INBOX', action:'inbox', icon:'ph-tray' },
-            { label:'CEK ULANG', action:'poll', icon:'ph-arrows-clockwise' }
-          ],
-          ts: Date.now()
-        });
-        startPolling();
-        sending = false;
-      } catch (e) {
-        pushLog([
-          { type:'err', text:'ERROR: ' + (e.message || e) },
-          { type:'warn', text:'Coba refresh, ganti browser, atau VPN.' }
-        ]);
-        pushMsg({ role:'ai', text:'❌ ' + (e.message || 'Terjadi kesalahan'), ts:Date.now() });
-        sending = false;
-      }
-    }
-
-    /* ============================================================
-       POLLING
-       ============================================================ */
-    function startPolling() {
-      stopPolling();
-      knownIds = new Set(inboxMsgs.map(m => m.gmId).filter(Boolean));
-      checkInbox().catch(()=>{});
-      polling = setInterval(() => { checkInbox().catch(()=>{}); }, 3000);
-    }
-    function stopPolling() { if (polling) { clearInterval(polling); polling = null; } }
-
-    async function checkInbox() {
-      if (!session.sid_token) return;
-      syncActiveInbox();
-      let data;
-      try { data = await guerrillaCheck(session.sid_token); } catch (e) { console.warn('checkInbox fail', e); return; }
-      if (data.sidToken && data.sidToken !== session.sid_token) { session.sid_token = data.sidToken; saveSession(); }
-      let changed = false;
-      for (const raw of data.list || []) {
-        if (knownIds.has(raw.mail_id)) continue;
-        if (!raw.mail_id) continue;
-        knownIds.add(raw.mail_id);
-        let detail;
-        try { detail = await guerrillaFetch(session.sid_token, raw.mail_id); } catch { continue; }
-        const bodyHtml = detail.mail_body || '';
-        const bodyText = stripHtml(bodyHtml);
-        const link = extractLink(bodyHtml);
-        const fromName = detail.mail_from || 'Alight Motion';
-        const item = {
-          id: Date.now() + Math.floor(Math.random()*1000),
-          gmId: raw.mail_id,
-          from: fromName,
-          subject: detail.mail_subject || '(Tanpa subjek)',
-          preview: (bodyText || '').substring(0, 120),
-          body: bodyText.substring(0, 800),
-          magicLink: link,
-          date: detail.mail_timestamp ? new Date(Number(detail.mail_timestamp)*1000).toISOString() : new Date().toISOString(),
-          read: false
-        };
-        inboxMsgs.unshift(item);
-        changed = true;
-        updateInboxBadge();
-        if (isLoggedIn()) renderInboxListContent();
-
-        pushLog([
-          { type:'ok', text:'EMAIL MASUK: ' + (detail.mail_subject || '') },
-          { type:'info', text: link ? 'LINK DITEMUKAN (href) ✅' : 'Tidak ada link' }
-        ]);
-        pushMsg({
-          role:'ai',
-          text: link ? `📩 Email masuk!\nSubject: ${detail.mail_subject}\n\nLink ditemukan. Copy atau aktivasi via tombol.` : `📩 Email masuk (tanpa link).`,
-          cta: link ? [
-            { label:'COPY LINK', action:'copy-last', icon:'ph-copy' },
-            { label:'AKTIVASI', action:'aktif-last', icon:'ph-lightning' },
-            { label:'INBOX', action:'inbox', icon:'ph-tray' }
-          ] : [{ label:'LIHAT INBOX', action:'inbox', icon:'ph-tray' }],
-          ts: Date.now()
-        });
-      }
-      if (changed) saveInbox();
-    }
-
-    async function runActivationFromInbox(rawLink) {
-      if (!session.email) { pushMsg({ role:'ai', text:'Belum ada email guerrillamail aktif. Ketik username dulu, atau gunakan mode email custom.', ts:Date.now() }); return; }
-      pushLog([{ type:'info', text:'Verifikasi link…' }]);
-      const authRes = await authUser(session.email, rawLink);
-      if (!authRes.ok) {
-        pushLog([{ type:'err', text:'VERIFIKASI GAGAL: ' + authRes.why }]);
-        pushMsg({ role:'ai', text:'❌ Link tidak valid.', ts:Date.now() });
-        return;
-      }
-      pushLog([{ type:'ok', text:'AUTH OK' }]);
-      pushLog([{ type:'info', text:'Aktivasi Pro…' }]);
-      const premium = await activatePro(authRes.idToken);
-      if (!premium.ok) {
-        pushLog([{ type:'err', text:'AKTIVASI GAGAL: ' + (premium.why||'').slice(0,120) }]);
-        pushMsg({ role:'ai', text:'❌ Aktivasi ditolak.', ts:Date.now() });
-        return;
-      }
-      const now = new Date();
-      const expiry = premium?.result?.result?.expiryTimeMillis;
-      const validUntil = expiry ? new Date(Number(expiry)) : (() => { const d = new Date(now); d.setFullYear(d.getFullYear()+1); return d; })();
-      pushLog([{ type:'ok', text:'✅ AKTIVASI BERHASIL' }, { type:'ok', text:'Order: ' + premium.order }]);
-      inboxMsgs.unshift({
-        id: Date.now(),
-        from: 'ALYZ AI',
-        subject: '✅ Aktivasi Berhasil',
-        preview: `Pro aktif untuk ${session.email}`,
-        body: `Status: ACTIVE\nEmail: ${session.email}\nOrder ID: ${premium.order}\nBerlaku s/d: ${validUntil.toLocaleString('id-ID')}`,
-        magicLink: null,
-        date: new Date().toISOString(),
-        read: false
-      });
-      saveInbox(); updateInboxBadge();
-      if (isLoggedIn()) renderInboxListContent();
-      pushMsg({
-        role:'ai',
-        text:`🎉 PRO AKTIF!\n📧 ${session.email}\n🎫 ${premium.order}\n📅 s/d ${validUntil.toLocaleString('id-ID')}`,
-        cta: [{ label:'INBOX', action:'inbox', icon:'ph-tray' }],
-        ts: Date.now()
-      });
-    }
-
-    async function runActivation(rawLink) {
-      if (!session.email) { pushMsg({ role:'ai', text:'Belum ada email guerrillamail aktif. Ketik username dulu.', ts:Date.now() }); return; }
-      if (sending) return;
-      sending = true;
-      pushMsg({ role:'user', text:'aktivasi', ts:Date.now() });
-      showTyping();
-      await new Promise(r => setTimeout(r, 400));
-      hideTyping();
-      await runActivationFromInbox(rawLink);
-      sending = false;
-    }
-
-    function updateInboxBadge() {
-      const badge = document.getElementById('inboxBadge');
-      const unread = inboxMsgs.filter(m => !m.read).length;
-      if (unread > 0) { badge.style.display = 'flex'; badge.innerText = unread; }
-      else badge.style.display = 'none';
-    }
-
-    /* ============================================================
-       CTA HANDLER
-       ============================================================ */
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-cta]');
-      if (!btn) return;
-      const action = btn.dataset.cta;
-      if (action === 'inbox') showInboxPopup();
-      if (action === 'poll') { checkInbox().catch(()=>{}); toast('Cek inbox…'); }
-      if (action === 'copy-last') {
-        const last = inboxMsgs.find(m => m.magicLink);
-        if (last) copyToClipboard(last.magicLink);
-        else toast('Belum ada link', 'error');
-      }
-      if (action === 'aktif-last') {
-        const last = inboxMsgs.find(m => m.magicLink);
-        if (last) openTempelPopup(last.magicLink);
-        else toast('Belum ada link', 'error');
-      }
-      if (action === 'open-tempel') {
-        openTempelPopup('');
-      }
-    });
-
-    /* ============================================================
-       COMPOSER
-       ============================================================ */
-    const composerInput = document.getElementById('composerInput');
-    const btnSend = document.getElementById('btnSend');
-    composerInput.addEventListener('input', () => {
-      composerInput.style.height = 'auto';
-      composerInput.style.height = Math.min(composerInput.scrollHeight, 120) + 'px';
-    });
-    composerInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
-    btnSend.onclick = sendMessage;
-
-    async function sendMessage() {
-      if (sending) return;
-      const raw = composerInput.value.trim();
-      if (!raw) return;
-      const v = validateInput(raw);
-      if (!v.ok) {
-        pushMsg({ role:'user', text: raw, ts:Date.now() });
-        pushMsg({ role:'ai', text: v.why, ts:Date.now() });
-        composerInput.value = ''; composerInput.style.height='auto'; return;
-      }
-      composerInput.value = ''; composerInput.style.height='auto';
-      if (v.kind === 'email') {
-        await runCustomEmail(v.value);
-      } else {
-        await runAlyzemail(v.value);
-      }
-    }
-
-    /* ============================================================
-       CLEAR
-       ============================================================ */
-    document.getElementById('btnClearChat').onclick = () => { showClearChatConfirm(); };
-    document.getElementById('btnRefreshInbox').onclick = () => {
-      checkInbox().catch(()=>{});
-      if (isLoggedIn()) renderInboxListContent();
-      toast('Refresh inbox…');
-    };
-
-    /* ============================================================
-       BIND LOGOUT — DI LUAR DOMContentLoaded biar tidak ketimpa
-       ============================================================ */
-    (function bindLogout() {
-      const btn = document.getElementById('btnLogoutInbox');
-      if (!btn) return;
-      btn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        showLogoutConfirm();
-      });
-    })();
-
-    /* ============================================================
-       NAV
-       ============================================================ */
-    const navItems = document.querySelectorAll('.nav-item');
-    const viewChat = document.getElementById('viewChat');
-    const viewInbox = document.getElementById('viewInbox');
-    const navIndicator = document.getElementById('navIndicator');
-    const bottomNavWrapper = document.getElementById('bottomNavWrapper');
-    const composerWrapper = document.getElementById('composerWrapper');
-
-    function moveIndicator(el) {
-      if (!el) return;
-      navIndicator.style.width = el.offsetWidth + 'px';
-      navIndicator.style.transform = `translateX(${el.offsetLeft}px)`;
-    }
-    function updateIndicators() {
-      const a = document.querySelector('.nav-item.active');
-      if (a) moveIndicator(a);
-    }
-    window.addEventListener('resize', () => requestAnimationFrame(updateIndicators));
-
-    let activeView = 'chat';
-    function activateView(target) {
-      if (target === activeView) return;
-      activeView = target;
-      navItems.forEach(n => {
-        n.classList.toggle('active', n.dataset.target === target);
-        const i = n.querySelector('i');
-        if (n.classList.contains('active')) i.classList.replace('ph','ph-fill');
-        else i.classList.replace('ph-fill','ph');
-      });
-      const activeItem = document.querySelector('.nav-item.active');
-      if (activeItem) moveIndicator(activeItem);
-      [viewChat, viewInbox].forEach(v => {
-        if (v.classList.contains('active')) {
-          v.classList.remove('active');
-          v.classList.add('leaving');
-          setTimeout(() => v.classList.remove('leaving'), 400);
-        }
-      });
-      const next = target === 'chat' ? viewChat : viewInbox;
-      next.classList.add('active');
-      if (target === 'inbox') {
-        renderInboxGate();
-        if (isLoggedIn()) checkInbox().catch(()=>{});
-      }
-    }
-    navItems.forEach(item => { item.addEventListener('click', () => activateView(item.dataset.target)); });
-
-    /* ============================================================
-       KEYBOARD HANDLER
-       ============================================================ */
-    function setupKeyboardHandler() {
-      const vv = window.visualViewport;
-      const root = document.documentElement;
-
-      function update() {
-        let kbHeight = 0;
-        if (vv) {
-          kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-        }
-        if (kbHeight > 120) {
-          bottomNavWrapper.classList.add('hidden-by-keyboard');
-          root.style.setProperty('--nav-h', '0px');
-        } else {
-          bottomNavWrapper.classList.remove('hidden-by-keyboard');
-          root.style.setProperty('--nav-h', '86px');
-        }
-        root.style.setProperty('--kb-h', Math.round(kbHeight) + 'px');
-      }
-
-      if (vv) {
-        vv.addEventListener('resize', update);
-        vv.addEventListener('scroll', update);
-      }
-      window.addEventListener('resize', update);
-      composerInput.addEventListener('focus', () => setTimeout(update, 300));
-      composerInput.addEventListener('blur', () => setTimeout(update, 300));
-      update();
-    }
-
-    /* ============================================================
-       INIT
-       ============================================================ */
-    window.addEventListener('load', () => {
-      let p = 1;
-      const pct = document.getElementById('splash-percent');
-      const bar = document.getElementById('splash-progress-bar');
-      const iv = setInterval(() => {
-        p++; pct.innerText = p + '%'; bar.style.width = p + '%';
-        if (p >= 100) {
-          clearInterval(iv);
-          setTimeout(() => {
-            const s = document.getElementById('splash-screen');
-            s.classList.add('hidden');
-            setTimeout(() => { s.remove(); updateIndicators(); }, 700);
-          }, 250);
-        }
-      }, 40);
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadAll();
-      if (!chatMsgs.length) {
-        chatMsgs.push({
-          role:'ai',
-          text:'Halo! Saya ALYZ AI.\n\nDua mode input:\n1. Ketik satu kata (maks 15 char) → buat email real guerrillamail\n2. Ketik email lengkap (mis. nama@gmail.com) → magic link dikirim ke email itu, lalu tekan AKTIVASI & tempel link manual\n\nPassword inbox guerrillamail: ' + FIXED_PASSWORD,
-          ts: Date.now()
-        });
-        saveChat();
-      }
-      renderChat();
-      renderInboxGate();
-      updateLogoutButtonVisibility();
-      updateInboxBadge();
-      setTimeout(() => requestAnimationFrame(updateIndicators), 200);
-      setupKeyboardHandler();
-      if (session.sid_token) startPolling();
-    });
-    </script>
-  </body>
-</html>  </script>
-  </body>
+  // Cegah klik kanan biar berasa hacker (opsional)
+  // document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
 </html>

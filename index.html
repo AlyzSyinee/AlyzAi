@@ -53,6 +53,7 @@
       .view-header-spacer{flex:1;}
       .view-header-btn{width:36px;height:36px;border-radius:10px;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--fg);cursor:pointer;box-shadow:2px 2px 0 var(--shadow);transition:transform .35s var(--ease-spring),box-shadow .35s var(--ease-spring);}
       .view-header-btn:active{transform:translate(1px,1px) scale(.92);box-shadow:0 0 0 var(--shadow);}
+      .view-header-btn.hidden-btn{display:none;}
 
       .chat-messages{
         flex:1; overflow-y:auto;
@@ -121,7 +122,6 @@
       .popup-hint{font-size:11px;color:var(--fg-dim);line-height:1.5;margin-bottom:12px;}
       .popup-hint code{background:var(--bg);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:10px;}
 
-      /* Confirm action row */
       .confirm-actions{display:flex;gap:8px;margin-top:14px;}
       .confirm-actions .cta-btn{flex:1;padding:12px;font-size:12px;}
 
@@ -198,7 +198,7 @@
             <div class="view-avatar"><i class="ph-fill ph-robot"></i></div>
             <div class="view-header-info">
               <h2>ALYZ AI AM</h2>
-              <p><span class="status-dot"></span> Alyz Ai</p>
+              <p><span class="status-dot"></span> Alyz Ai Online</p>
             </div>
             <div class="view-header-spacer"></div>
             <button class="view-header-btn" id="btnClearChat" title="Bersihkan chat"><i class="ph ph-trash"></i></button>
@@ -402,11 +402,20 @@
     }
 
     /* ============================================================
-       LOGIN
+       LOGIN / LOGOUT
        ============================================================ */
     function isLoggedIn() { return !!(auth && auth.email && auth.password); }
+
+    function updateLogoutButtonVisibility() {
+      const btn = document.getElementById('btnLogoutInbox');
+      if (!btn) return;
+      if (isLoggedIn()) btn.classList.remove('hidden-btn');
+      else btn.classList.add('hidden-btn');
+    }
+
     function renderInboxGate() {
       const list = document.getElementById('inboxList');
+      updateLogoutButtonVisibility();
       if (!isLoggedIn()) {
         const lastEmail = session.email || '';
         list.innerHTML = `
@@ -424,12 +433,15 @@
             </div>
           </div>
         `;
-        document.getElementById('loginBtn').onclick = doLogin;
-        document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+        const lb = document.getElementById('loginBtn');
+        if (lb) lb.onclick = doLogin;
+        const lp = document.getElementById('loginPass');
+        if (lp) lp.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
         return;
       }
       renderInboxListContent();
     }
+
     function doLogin() {
       const email = document.getElementById('loginEmail').value.trim().toLowerCase();
       const pass = document.getElementById('loginPass').value;
@@ -441,9 +453,18 @@
       auth = { email, password: pass, ts: new Date().toISOString() };
       saveAuth();
       syncActiveInbox();
-      toast('Login berhasil');
+      toast('Login berhasil ✅');
       renderInboxGate();
       checkInbox().catch(()=>{});
+    }
+
+    function doLogout() {
+      if (!isLoggedIn()) { toast('Belum login', 'error'); return; }
+      clearAuth();
+      updateLogoutButtonVisibility();
+      renderInboxGate();
+      updateInboxBadge();
+      toast('Logout berhasil ✅');
     }
 
     /* ============================================================
@@ -452,6 +473,7 @@
     function renderInboxListContent() {
       const list = document.getElementById('inboxList');
       updateInboxBadge();
+      updateLogoutButtonVisibility();
       if (!session.email) {
         list.innerHTML = `<div class="inbox-session-banner">Belum ada email aktif.<br>Ketik username di chat dulu.</div>`;
         return;
@@ -512,7 +534,7 @@
     popupOverlay.addEventListener('click', e => { if (e.target === popupOverlay) closePopup(); });
 
     /* ============================================================
-       POPUP KONFIRMASI HAPUS CHAT (custom, bukan confirm browser)
+       POPUP KONFIRMASI HAPUS CHAT
        ============================================================ */
     function showClearChatConfirm() {
       openPopup({
@@ -535,6 +557,30 @@
         renderChat();
         closePopup();
         toast('Chat telah dibersihkan ✅');
+      };
+    }
+
+    /* ============================================================
+       POPUP KONFIRMASI LOGOUT
+       ============================================================ */
+    function showLogoutConfirm() {
+      if (!isLoggedIn()) { toast('Belum login', 'error'); return; }
+      openPopup({
+        icon:'ph-sign-out',
+        title:'Logout Inbox?',
+        subtitle:'Kamu bisa login lagi kapan saja',
+        body: `
+          <div class="popup-hint">Sesi inbox di perangkat ini akan ditutup.<br><br>Pesan tetap tersimpan per email.</div>
+          <div class="confirm-actions">
+            <button class="cta-btn secondary" id="logoutCancelBtn"><i class="ph ph-x"></i> Batal</button>
+            <button class="cta-btn danger" id="logoutConfirmBtn"><i class="ph ph-sign-out"></i> Logout</button>
+          </div>
+        `
+      });
+      document.getElementById('logoutCancelBtn').onclick = closePopup;
+      document.getElementById('logoutConfirmBtn').onclick = () => {
+        closePopup();
+        doLogout();
       };
     }
 
@@ -881,6 +927,7 @@
 
         auth = { email: finalEmail.email, password: FIXED_PASSWORD, ts: new Date().toISOString() };
         saveAuth();
+        updateLogoutButtonVisibility();
         pushLog([{ type:'ok', text:'AUTO-LOGIN INBOX: password "' + FIXED_PASSWORD + '"' }]);
 
         pushLog([{ type:'info', text:'Kirim link ke ' + finalEmail.email + '…' }]);
@@ -1093,16 +1140,27 @@
     }
 
     /* ============================================================
-       CLEAR — pakai popup custom, bukan confirm browser
+       CLEAR
        ============================================================ */
-    document.getElementById('btnClearChat').onclick = () => {
-      showClearChatConfirm();
-    };
+    document.getElementById('btnClearChat').onclick = () => { showClearChatConfirm(); };
     document.getElementById('btnRefreshInbox').onclick = () => {
       checkInbox().catch(()=>{});
       if (isLoggedIn()) renderInboxListContent();
       toast('Refresh inbox…');
     };
+
+    /* ============================================================
+       BIND LOGOUT — DI LUAR DOMContentLoaded biar tidak ketimpa
+       ============================================================ */
+    (function bindLogout() {
+      const btn = document.getElementById('btnLogoutInbox');
+      if (!btn) return;
+      btn.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        showLogoutConfirm();
+      });
+    })();
 
     /* ============================================================
        NAV
@@ -1217,6 +1275,7 @@
       }
       renderChat();
       renderInboxGate();
+      updateLogoutButtonVisibility();
       updateInboxBadge();
       setTimeout(() => requestAnimationFrame(updateIndicators), 200);
       setupKeyboardHandler();
@@ -1224,7 +1283,6 @@
     });
     </script>
   </body>
-</html> });
-    </script>
+</html>  </script>
   </body>
 </html>
